@@ -1,6 +1,6 @@
 @echo off
 REM Create conda environment and install pip requirements
-set ENV_NAME=automlnb2017
+set ENV_NAME=bankclass-2
 set PY=3.11
 
 where conda >nul 2>&1

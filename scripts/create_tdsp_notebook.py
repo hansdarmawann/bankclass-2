@@ -9,7 +9,7 @@ notebook = {
     'cells': [],
     'metadata': {
         'kernelspec': {
-            'display_name': 'automlnb2017',
+            'display_name': 'bankclass-2',
             'language': 'python',
             'name': 'python3'
         },

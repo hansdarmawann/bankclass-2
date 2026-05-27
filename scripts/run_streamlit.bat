@@ -8,14 +8,20 @@ set REPO_DIR=%SCRIPT_DIR%..\
 cd /d "%REPO_DIR%"
 
 set PYTHON_CMD=python
-set PYTHON_ARGS=-m streamlit run app\streamlit_app.py --logger.level=info
+set PYTHON_ARGS=-m streamlit run app\streamlit_app.py --logger.level=info --server.headless=true
+set STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
 where conda >nul 2>&1
 if %ERRORLEVEL% == 0 (
-    set PYTHON_CMD=conda
-    set PYTHON_ARGS=run -n automlnb2017 python -m streamlit run app\streamlit_app.py --logger.level=info
-    echo Using conda environment automlnb2017 via conda run
-    goto START_APP
+    conda env list | findstr /R /C:"^[ ]*bankclass-2[ ]" >nul 2>&1
+    if %ERRORLEVEL% == 0 (
+        set PYTHON_CMD=conda
+        set PYTHON_ARGS=run -n bankclass-2 python -m streamlit run app\streamlit_app.py --logger.level=info
+        echo Using conda environment bankclass-2 via conda run
+        goto START_APP
+    ) else (
+        echo Conda found, but environment bankclass-2 was not found.
+    )
 )
 
 set VENV_PYTHON=%REPO_DIR%.venv\Scripts\python.exe
@@ -26,7 +32,7 @@ if exist "%VENV_PYTHON%" (
     echo Installing dependencies into .venv...
     "%PYTHON_CMD%" -m pip install -q -r "%REPO_DIR%scripts\requirements.txt"
 ) else (
-    echo WARNING: .venv not found. If Streamlit or dependencies are missing, create a venv or use automlnb2017:
+    echo WARNING: .venv not found. If Streamlit or dependencies are missing, create a venv or use bankclass-2:
     echo   python -m venv .venv
     echo   .venv\Scripts\activate
     echo   python -m pip install -r scripts\requirements.txt

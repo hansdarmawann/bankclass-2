@@ -1,5 +1,5 @@
 # Create conda environment and install pip requirements (PowerShell)
-$envName = 'automlnb2017'
+$envName = 'bankclass-2'
 $py = '3.11'
 
 if (-not (Get-Command conda -ErrorAction SilentlyContinue)) {
