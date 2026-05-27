@@ -16,7 +16,7 @@ if %ERRORLEVEL% == 0 (
     conda env list | findstr /R /C:"^[ ]*bankclass-2[ ]" >nul 2>&1
     if %ERRORLEVEL% == 0 (
         set PYTHON_CMD=conda
-        set PYTHON_ARGS=run -n bankclass-2 python -m streamlit run app\streamlit_app.py --logger.level=info
+        set PYTHON_ARGS=run -n bankclass-2 python -m streamlit run app\streamlit_app.py --logger.level=info --server.headless=true
         echo Using conda environment bankclass-2 via conda run
         goto START_APP
     ) else (
@@ -27,7 +27,7 @@ if %ERRORLEVEL% == 0 (
 set VENV_PYTHON=%REPO_DIR%.venv\Scripts\python.exe
 if exist "%VENV_PYTHON%" (
     set PYTHON_CMD=%VENV_PYTHON%
-    set PYTHON_ARGS=-m streamlit run app\streamlit_app.py --logger.level=info
+    set PYTHON_ARGS=-m streamlit run app\streamlit_app.py --logger.level=info --server.headless=true
     echo Using virtualenv: %VENV_PYTHON%
     echo Installing dependencies into .venv...
     "%PYTHON_CMD%" -m pip install -q -r "%REPO_DIR%scripts\requirements.txt"
