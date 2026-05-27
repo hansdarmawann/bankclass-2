@@ -13,7 +13,7 @@ import pyarrow.parquet as pq
 # Page config
 st.set_page_config(
     page_title="Credit Score Classifier",
-    page_icon="ðŸ’³",
+    page_icon=":credit_card:",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -151,7 +151,7 @@ def load_best_model():
         mlflow.set_tracking_uri(f"sqlite:///{MLFLOW_DB.as_posix()}")
         artifact_path, model_id = find_model_artifact()
         if artifact_path is None:
-            st.error("Model MLflow terbaru tidak ditemukan di outputs/mlruns.")
+            st.error("Latest MLflow model not found in outputs/mlruns.")
             return None, None
 
         model = mlflow.pyfunc.load_model(str(artifact_path))
@@ -159,7 +159,7 @@ def load_best_model():
         return model, model_id
 
     except Exception as e:
-        st.error(f"âŒ Error loading model: {str(e)}")
+        st.error(f"Error loading model: {str(e)}")
         return None, None
 
 
@@ -343,7 +343,7 @@ def make_prediction(model, input_data, required_columns, column_types, label_map
 
 # ==================== STREAMLIT UI ====================
 def main():
-    st.title("ðŸ’³ Credit Score Classification")
+    st.title("Credit Score Classification")
     st.markdown("---")
     
     # Initialize database
@@ -352,7 +352,7 @@ def main():
     # Load model
     model, model_version = load_best_model()
     if model is None:
-        st.error("âŒ Model tidak dapat dimuat. Pastikan model sudah dilatih.")
+        st.error("Model could not be loaded. Make sure a model has been trained.")
         return
     
     # Load model input schema and sample data
@@ -360,21 +360,17 @@ def main():
     sample_df = load_training_sample()
     label_mapping = load_label_mapping(sample_df)
     
-    # Sidebar
-    st.sidebar.title("Opsi Input")
-    input_method = st.sidebar.radio(
-        "Pilih metode input data:",
-        ["Upload CSV", "Form Input"]
-    )
+    # Force CSV mode and hide input method selector from UI
+    input_method = "Upload CSV"
     
     # ==================== CSV UPLOAD ====================
     if input_method == "Upload CSV":
         st.header("Upload CSV File")
         
         uploaded_file = st.file_uploader(
-            "Pilih file CSV",
+            "Choose CSV file",
             type=['csv'],
-            help="Format: CSV dengan kolom sesuai data training"
+            help="CSV should use the same columns as the training data."
         )
         
         if uploaded_file:
@@ -389,7 +385,7 @@ def main():
                         uploaded_file.seek(0)  # Reset file pointer
                         df = pd.read_csv(uploaded_file, delimiter=delimiter)
                         if len(df.columns) > 1:  # Successfully parsed with multiple columns
-                            st.info(f"âœ… CSV berhasil dibaca dengan delimiter: '{delimiter}'")
+                            st.info(f"CSV read successfully using delimiter: '{delimiter}'")
                             break
                     except:
                         continue
@@ -402,19 +398,19 @@ def main():
                 # Clean column names (remove extra whitespace)
                 df.columns = df.columns.str.strip()
                 
-                st.write(f"ðŸ“Š Data dimuat: {df.shape[0]} baris, {df.shape[1]} kolom")
+                st.write(f"Data loaded: {df.shape[0]} rows, {df.shape[1]} columns")
                 
                 # Show preview
-                with st.expander("ðŸ‘€ Preview Data", expanded=False):
+                with st.expander("Preview Data", expanded=False):
                     st.dataframe(df.head(10))
                 
                 # Process predictions
-                if st.button("ðŸš€ Prediksi", key="csv_predict"):
+                if st.button("Run Prediction", key="csv_predict"):
                     progress_bar = st.progress(0)
                     status_text = st.empty()
                     results_list = []
                     
-                    with st.spinner("â³ Processing predictions..."):
+                    with st.spinner("Processing predictions..."):
                         for idx, row in df.iterrows():
                             try:
                                 # Prepare input
@@ -450,7 +446,7 @@ def main():
                                 # Update progress
                                 progress = (idx + 1) / len(df)
                                 progress_bar.progress(progress)
-                                status_text.text(f"âœ… Diproses: {idx + 1}/{len(df)}")
+                                status_text.text(f"Processed: {idx + 1}/{len(df)}")
                             
                             except Exception as e:
                                 logger.error(f"Error on row {idx}: {str(e)}")
@@ -458,16 +454,16 @@ def main():
                     
                     # Display results
                     if results_list:
-                        st.success(f"âœ… Prediksi selesai! {len(results_list)} data berhasil diproses")
+                        st.success(f"Prediction complete. {len(results_list)} rows processed successfully.")
                         
                         results_df = pd.DataFrame(results_list)
                         
                         # Show results
-                        st.subheader("ðŸ“ˆ Hasil Prediksi")
+                        st.subheader("Prediction Results")
                         
                         col1, col2, col3 = st.columns(3)
                         with col1:
-                            st.metric("Total Prediksi", len(results_df))
+                            st.metric("Total Predictions", len(results_df))
                         with col2:
                             st.metric("Avg Confidence", f"{results_df['confidence'].mean():.2%}")
                         with col3:
@@ -486,20 +482,20 @@ def main():
                         csv_export = results_export.to_csv(index=False)
                         
                         st.download_button(
-                            label="ðŸ“¥ Download Hasil Prediksi (CSV)",
+                            label="Download Prediction Results (CSV)",
                             data=csv_export,
                             file_name=f"predictions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                             mime="text/csv"
                         )
                     else:
-                        st.error("âŒ Tidak ada prediksi yang berhasil")
+                        st.error("No predictions were produced.")
             
             except Exception as e:
-                st.error(f"âŒ Error membaca CSV: {str(e)}")
+                st.error(f"Error reading CSV: {str(e)}")
     
     # ==================== FORM INPUT ====================
     else:
-        st.header("Input Data Manual")
+        st.header("Manual Input")
 
         input_columns = [col for col in model_input_columns if col not in DERIVED_FEATURES]
         numeric_columns = [col for col in input_columns if model_input_types.get(col) == 'double']
@@ -508,7 +504,7 @@ def main():
         form_data = {}
         
         # Numeric fields
-        st.subheader("ðŸ”¢ Numeric Input")
+        st.subheader("Numeric Input")
         col1, col2 = st.columns(2)
         first_half = numeric_columns[: len(numeric_columns) // 2]
         second_half = numeric_columns[len(numeric_columns) // 2 :]
@@ -522,7 +518,7 @@ def main():
             for col in first_half:
                 if 'age' == col:
                     form_data[col] = st.number_input(
-                        f"ðŸ”¢ {col.replace('_', ' ').title()}",
+                        f"{col.replace('_', ' ').title()}",
                         value=int(default_numeric(col) or 30),
                         min_value=0,
                         max_value=120,
@@ -530,14 +526,14 @@ def main():
                     )
                 elif any(x in col.lower() for x in ['count', 'num', 'number', 'loan', 'inquiries']):
                     form_data[col] = st.number_input(
-                        f"ðŸ”¢ {col.replace('_', ' ').title()}",
+                        f"{col.replace('_', ' ').title()}",
                         value=int(default_numeric(col)),
                         min_value=0,
                         step=1
                     )
                 else:
                     form_data[col] = st.number_input(
-                        f"ðŸ’° {col.replace('_', ' ').title()}",
+                        f"{col.replace('_', ' ').title()}",
                         value=float(default_numeric(col)),
                         min_value=0.0,
                         step=0.01
@@ -547,7 +543,7 @@ def main():
             for col in second_half:
                 if 'age' == col:
                     form_data[col] = st.number_input(
-                        f"ðŸ”¢ {col.replace('_', ' ').title()}",
+                        f"{col.replace('_', ' ').title()}",
                         value=int(default_numeric(col) or 30),
                         min_value=0,
                         max_value=120,
@@ -555,21 +551,21 @@ def main():
                     )
                 elif any(x in col.lower() for x in ['count', 'num', 'number', 'loan', 'inquiries']):
                     form_data[col] = st.number_input(
-                        f"ðŸ”¢ {col.replace('_', ' ').title()}",
+                        f"{col.replace('_', ' ').title()}",
                         value=int(default_numeric(col)),
                         min_value=0,
                         step=1
                     )
                 else:
                     form_data[col] = st.number_input(
-                        f"ðŸ’° {col.replace('_', ' ').title()}",
+                        f"{col.replace('_', ' ').title()}",
                         value=float(default_numeric(col)),
                         min_value=0.0,
                         step=0.01
                     )
 
         # Categorical fields
-        st.subheader("ðŸ§¾ Categorical Input")
+        st.subheader("Categorical Input")
         for col in string_columns:
             default_value = 'Unknown'
             options = []
@@ -591,17 +587,17 @@ def main():
                 )
 
         # Optional: actual credit score
-        with st.expander("ðŸ“‹ Informasi Tambahan (Opsional)"):
+        with st.expander("Additional Information (Optional)"):
             actual_score = st.selectbox(
-                "Kredit score aktual (jika tersedia):",
+                "Actual credit score (if available):",
                 ["Unknown", "Poor", "Standard", "Good"]
             )
 
-        if st.button("ðŸš€ Prediksi", key="form_predict", use_container_width=True):
+        if st.button("Run Prediction", key="form_predict", use_container_width=True):
             try:
                 input_df = pd.DataFrame([form_data])
 
-                with st.spinner("â³ Processing prediction..."):
+                with st.spinner("Processing prediction..."):
                     pred_class, prob_dict = make_prediction(
                         model,
                         input_df,
@@ -619,38 +615,38 @@ def main():
                         input_data_json=input_df.to_json()
                     )
 
-                    st.success("âœ… Prediksi selesai!")
+                    st.success("Prediction complete.")
 
                     col1, col2, col3 = st.columns(3)
                     with col1:
-                        st.metric("Prediksi", pred_class, delta=None)
+                        st.metric("Prediction", pred_class, delta=None)
                     with col2:
                         st.metric("Confidence", f"{prob_dict['confidence']:.2%}")
                     with col3:
                         st.metric("Model Version", model_version or "Latest")
 
-                    st.subheader("ðŸ“Š Probabilitas per Kategori")
+                    st.subheader("Probability by Class")
                     prob_data = {
-                        'Kategori': ['Poor', 'Standard', 'Good'],
-                        'Probabilitas': [
+                        'Class': ['Poor', 'Standard', 'Good'],
+                        'Probability': [
                             prob_dict.get('prob_poor', 0),
                             prob_dict.get('prob_standard', 0),
                             prob_dict.get('prob_good', 0)
                         ]
                     }
                     prob_df = pd.DataFrame(prob_data)
-                    prob_df['Probabilitas %'] = (prob_df['Probabilitas'] * 100).round(2)
+                    prob_df['Probability %'] = (prob_df['Probability'] * 100).round(2)
 
-                    st.bar_chart(prob_df.set_index('Kategori')['Probabilitas %'])
+                    st.bar_chart(prob_df.set_index('Class')['Probability %'])
                     st.dataframe(prob_df, use_container_width=True)
 
             except Exception as e:
-                st.error(f"âŒ Error: {str(e)}")
+                st.error(f"Error: {str(e)}")
     
     # ==================== HISTORY & DATABASE ====================
     st.markdown("---")
     
-    with st.expander("ðŸ“œ Riwayat Prediksi"):
+    with st.expander("Prediction History"):
         try:
             conn = sqlite3.connect(str(DB_FILE))
             history_df = pd.read_sql_query(
@@ -660,7 +656,7 @@ def main():
             conn.close()
             
             if len(history_df) > 0:
-                st.write(f"ðŸ“Š Total prediksi tercatat: {len(history_df)}")
+                st.write(f"Total predictions recorded: {len(history_df)}")
                 
                 # Metrics
                 col1, col2, col3 = st.columns(3)
@@ -676,26 +672,26 @@ def main():
                 # Download all data
                 csv_data = history_df.to_csv(index=False)
                 st.download_button(
-                    label="ðŸ“¥ Download Semua Riwayat (CSV)",
+                    label="Download Full History (CSV)",
                     data=csv_data,
                     file_name=f"all_predictions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                     mime="text/csv"
                 )
             else:
-                st.info("â„¹ï¸ Belum ada prediksi yang tersimpan")
+                st.info("No saved predictions yet.")
         
         except Exception as e:
-            st.warning(f"âš ï¸ Tidak dapat membaca riwayat: {str(e)}")
+            st.warning(f"Could not read history: {str(e)}")
     
     # Footer
     st.markdown("---")
     st.markdown("""
     <div style='text-align: center; color: gray; font-size: 12px;'>
-        ðŸ’¡ Tips: Upload CSV dengan format yang sama dengan data training, atau gunakan form untuk input manual.
+        Tip: Upload a CSV with the same schema as the training data, or use manual input.
         <br>
-        ðŸ“‚ Database: {db_path}
+        Database: {db_path}
         <br>
-        ðŸ¤– Model Version: {version}
+        Model Version: {version}
     </div>
     """.format(
         db_path=DB_FILE,
