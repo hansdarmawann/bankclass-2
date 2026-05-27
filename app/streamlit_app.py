@@ -102,7 +102,9 @@ def parse_registered_model_meta(meta_file: Path):
 def find_model_artifact():
     """Find the intended local MLflow model artifact."""
     possible_roots = [
+        PROJECT_ROOT / 'outputs' / 'mlruns' / 'models',
         PROJECT_ROOT / 'outputs' / 'mlruns' / '1' / 'models',
+        PROJECT_ROOT / 'archive' / 'mlruns' / 'models',
         PROJECT_ROOT / 'archive' / 'mlruns' / '1' / 'models'
     ]
 
