@@ -1,0 +1,5 @@
+Conversion completed successfully at 2026-05-19 02:51:44 UTC time. Latest Metadata file: b7147494-d5f8-41e9-ad1f-7aa4bbf5f974/Tables/dbo/train_silver/_delta_log/00000000000000000000.json
+=== OneLake Table Format Conversion Details ===
+Status:             Succeeded
+Timestamp (UTC):    2026-05-19 02:51:44
+Latest Metadata:    b7147494-d5f8-41e9-ad1f-7aa4bbf5f974/Tables/dbo/train_silver/_delta_log/00000000000000000000.json
