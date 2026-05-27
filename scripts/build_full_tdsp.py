@@ -1,9 +1,24 @@
 import json
+import copy
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SOURCE_NOTEBOOK = PROJECT_ROOT / "archive" / "notebooks" / "automl_notebook_2017_improved.ipynb"
 OUTPUT_NOTEBOOK = PROJECT_ROOT / "notebooks" / "credit_score_automl_tdsp.ipynb"
+
+if not SOURCE_NOTEBOOK.exists():
+    # Fallback to current notebook if archive source is unavailable.
+    SOURCE_NOTEBOOK = OUTPUT_NOTEBOOK
+
+MOJIBAKE_REPLACEMENTS = {
+    "âœ…": "[OK]",
+    "âš ï¸": "[WARN]",
+    "âŒ": "[ERROR]",
+    "ðŸ“Š": "Dataset",
+    "ðŸ¤–": "Model",
+    "ðŸ“ˆ": "Performance",
+    "ðŸ’¾": "Outputs",
+}
 
 def create_md_cell(source_lines, cell_id):
     return {
@@ -22,6 +37,25 @@ def create_code_cell(source_lines, cell_id):
         "outputs": [],
         "source": source_lines
     }
+
+def sanitize_cell(cell):
+    """Normalize copied cells for readability and portability."""
+    cleaned = copy.deepcopy(cell)
+
+    if cleaned.get("cell_type") == "code":
+        cleaned["execution_count"] = None
+        cleaned["outputs"] = []
+
+    source = cleaned.get("source", [])
+    normalized = []
+    for line in source:
+        new_line = line
+        for bad, good in MOJIBAKE_REPLACEMENTS.items():
+            new_line = new_line.replace(bad, good)
+        normalized.append(new_line)
+    cleaned["source"] = normalized
+
+    return cleaned
 
 # Read the original notebook
 with open(SOURCE_NOTEBOOK, 'r', encoding='utf-8') as f:
@@ -102,25 +136,25 @@ tdsp_notebook["cells"].append(create_md_cell([
 # Add configuration cell from original
 for cell in original["cells"]:
     if cell.get("id") == "config-cell":
-        tdsp_notebook["cells"].append(cell)
+        tdsp_notebook["cells"].append(sanitize_cell(cell))
         break
 
 # Add logging setup
 for cell in original["cells"]:
     if cell.get("id") == "setup-logging":
-        tdsp_notebook["cells"].append(cell)
+        tdsp_notebook["cells"].append(sanitize_cell(cell))
         break
 
 # Add package installation
 for cell in original["cells"]:
     if cell.get("id") == "install-packages":
-        tdsp_notebook["cells"].append(cell)
+        tdsp_notebook["cells"].append(sanitize_cell(cell))
         break
 
 # Add data loading
 for cell in original["cells"]:
     if cell.get("id") == "load-data":
-        tdsp_notebook["cells"].append(cell)
+        tdsp_notebook["cells"].append(sanitize_cell(cell))
         break
 
 # 3. Data Understanding
@@ -134,7 +168,7 @@ tdsp_notebook["cells"].append(create_md_cell([
 # Add validation cells
 for cell in original["cells"]:
     if cell.get("id") in ["data-validation", "class-balance"]:
-        tdsp_notebook["cells"].append(cell)
+        tdsp_notebook["cells"].append(sanitize_cell(cell))
 
 # 4. Data Preparation
 tdsp_notebook["cells"].append(create_md_cell([
@@ -147,7 +181,7 @@ tdsp_notebook["cells"].append(create_md_cell([
 # Add feature engineering, split, and preprocessing cells
 for cell in original["cells"]:
     if cell.get("id") in ["feature-engineering", "train-test-split", "preprocessing"]:
-        tdsp_notebook["cells"].append(cell)
+        tdsp_notebook["cells"].append(sanitize_cell(cell))
 
 # 5. Modeling
 tdsp_notebook["cells"].append(create_md_cell([
@@ -160,7 +194,7 @@ tdsp_notebook["cells"].append(create_md_cell([
 # Add MLflow and training cells
 for cell in original["cells"]:
     if cell.get("id") in ["mlflow-setup", "automl-training"]:
-        tdsp_notebook["cells"].append(cell)
+        tdsp_notebook["cells"].append(sanitize_cell(cell))
 
 # 6. Evaluation
 tdsp_notebook["cells"].append(create_md_cell([
@@ -173,7 +207,7 @@ tdsp_notebook["cells"].append(create_md_cell([
 # Add evaluation cells
 for cell in original["cells"]:
     if cell.get("id") in ["model-evaluation", "feature-importance"]:
-        tdsp_notebook["cells"].append(cell)
+        tdsp_notebook["cells"].append(sanitize_cell(cell))
 
 # 7. Deployment
 tdsp_notebook["cells"].append(create_md_cell([
@@ -186,7 +220,7 @@ tdsp_notebook["cells"].append(create_md_cell([
 # Add deployment cells
 for cell in original["cells"]:
     if cell.get("id") in ["save-model", "generate-predictions", "save-predictions", "pipeline-summary"]:
-        tdsp_notebook["cells"].append(cell)
+        tdsp_notebook["cells"].append(sanitize_cell(cell))
 
 # Add conclusion
 tdsp_notebook["cells"].append(create_md_cell([
