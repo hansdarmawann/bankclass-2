@@ -44,14 +44,15 @@ def check_directories():
         'app': 'Streamlit app source',
         'notebooks': 'Active notebooks',
         'scripts': 'Helper scripts',
-        'train_silver': 'Training data',
-        'mlruns': 'MLflow runs',
+        'data\\train_silver': 'Training data',
+        'data\\test_silver': 'Test data',
+        'outputs\\mlruns': 'MLflow runs',
         'outputs': 'Generated outputs'
     }
     
     missing = []
     for folder, name in required.items():
-        path = PROJECT_ROOT / folder
+        path = PROJECT_ROOT / Path(folder)
         if path.exists():
             print(f"  [OK] {name} ({folder})")
         else:
@@ -66,7 +67,7 @@ def check_model():
 
     try:
         import mlflow
-        mlflow.set_tracking_uri(f"file:///{PROJECT_ROOT}/mlruns")
+        mlflow.set_tracking_uri(f"sqlite:///{(PROJECT_ROOT / 'outputs' / 'mlflow.db').as_posix()}")
         
         client = mlflow.tracking.MlflowClient()
         

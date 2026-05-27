@@ -11,8 +11,9 @@ sample data, and a Streamlit app for CSV or manual prediction.
 - `notebooks/` - active notebook: `credit_score_automl_tdsp.ipynb`.
 - `archive/notebooks/` - historical notebook versions.
 - `data/` - small sample data and local runtime database.
-- `train_silver/` and `test_silver/` - local parquet/Delta-style datasets.
-- `mlruns/` - local MLflow model artifacts required for demo scoring.
+- `data/train_silver/` and `data/test_silver/` - local parquet/Delta-style datasets.
+- `outputs/mlruns/` - local MLflow model artifacts required for demo scoring.
+- `outputs/mlflow.db` - local MLflow tracking database.
 - `outputs/` - generated logs, figures, and prediction exports.
 - `requirements-notebook.txt` - notebook/training environment reference.
 
@@ -62,7 +63,7 @@ Validate the active notebook:
 python scripts\validate_notebook.py
 ```
 
-Convert `test_silver/` parquet data to CSV:
+Convert `data/test_silver/` parquet data to CSV:
 
 ```powershell
 python scripts\convert_delta_to_csv.py
@@ -71,7 +72,7 @@ python scripts\convert_delta_to_csv.py
 The CSV output is written to:
 
 ```text
-test_silver/test_data.csv
+data/test_silver/test_data.csv
 ```
 
 ## Notes

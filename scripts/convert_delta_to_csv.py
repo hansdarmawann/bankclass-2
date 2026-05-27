@@ -8,7 +8,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Try reading with Delta Lake first, fallback to direct parquet reading
 def convert_delta_to_csv():
-    test_silver_path = PROJECT_ROOT / 'test_silver'
+    test_silver_path = PROJECT_ROOT / 'data' / 'test_silver'
     
     print(f"📁 Reading from: {test_silver_path}")
     

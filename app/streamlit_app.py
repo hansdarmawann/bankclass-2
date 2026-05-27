@@ -26,7 +26,9 @@ logger = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DB_FILE = PROJECT_ROOT / "data" / "credit_predictions.db"
 MODEL_NAME = "credit_score_classifier"
-TRAIN_DIR = PROJECT_ROOT / 'train_silver'
+TRAIN_DIR = PROJECT_ROOT / 'data' / 'train_silver'
+MLFLOW_DB = PROJECT_ROOT / 'outputs' / 'mlflow.db'
+MLFLOW_ARTIFACT_DIR = PROJECT_ROOT / 'outputs' / 'mlruns'
 DERIVED_FEATURES = {
     'debt_to_income_ratio',
     'utilization_per_card',
@@ -100,7 +102,7 @@ def parse_registered_model_meta(meta_file: Path):
 def find_model_artifact():
     """Find the intended local MLflow model artifact."""
     possible_roots = [
-        PROJECT_ROOT / 'mlruns' / '1' / 'models',
+        PROJECT_ROOT / 'outputs' / 'mlruns' / '1' / 'models',
         PROJECT_ROOT / 'archive' / 'mlruns' / '1' / 'models'
     ]
 
@@ -141,12 +143,13 @@ def find_model_artifact():
 
 @st.cache_resource
 def load_best_model():
-    """Load latest model from mlruns/1/models"""
+    """Load latest model from local MLflow tracking."""
     try:
-        mlflow.set_tracking_uri(f"file:///{PROJECT_ROOT / 'mlruns'}")
+        MLFLOW_ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+        mlflow.set_tracking_uri(f"sqlite:///{MLFLOW_DB.as_posix()}")
         artifact_path, model_id = find_model_artifact()
         if artifact_path is None:
-            st.error("âŒ Model MLflow terbaru tidak ditemukan di mlruns/1/models.")
+            st.error("Model MLflow terbaru tidak ditemukan di outputs/mlruns.")
             return None, None
 
         model = mlflow.pyfunc.load_model(str(artifact_path))
